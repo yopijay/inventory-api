@@ -1,14 +1,21 @@
 const Pool = require('pg').Pool;
-const pool = new Pool({
+const config = process.env.DATABASE_URL ? {
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+} : {
     user: 'pijay',
     host: 'localhost',
     database: 'inventory',
     password: 'root',
     port: 5432
-});
+}
+
+const pool = new Pool(config);
 
 const getAll = (tbl) => {
-    return new Promise(function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         query = '';
         switch(tbl) {
             case 'brand' :
@@ -29,7 +36,7 @@ const getAll = (tbl) => {
                 query = `SELECT * FROM ${ tbl } ORDER BY date_created DESC`;
         }
 
-        pool.query(query, (error, results) => {
+        await pool.query(query, (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -37,8 +44,8 @@ const getAll = (tbl) => {
 }
 
 const options = (tbl, columns) => {
-    return new Promise(function(resolve, reject) {
-        pool.query(`SELECT ${columns} FROM ${tbl} WHERE status= 1 ORDER BY id ASC`, (error, results) => {
+    return new Promise(async function(resolve, reject) {
+        await pool.query(`SELECT ${columns} FROM ${tbl} WHERE status= 1 ORDER BY id ASC`, (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -46,8 +53,8 @@ const options = (tbl, columns) => {
 }
 
 const count = (tbl) => {
-    return new Promise(function(resolve, reject) {
-        pool.query(`SELECT COUNT(*) FROM ${ tbl }`, (error, results) => {
+    return new Promise(async function(resolve, reject) {
+        await pool.query(`SELECT COUNT(*) FROM ${ tbl }`, (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -55,8 +62,8 @@ const count = (tbl) => {
 }
 
 const sum = (tbl, col) => {
-    return new Promise(function(resolve, reject) {
-        pool.query(`SELECT SUM(${col}) as total FROM ${tbl}`, (error, results) => {
+    return new Promise(async function(resolve, reject) {
+        await pool.query(`SELECT SUM(${col}) as total FROM ${tbl}`, (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -64,10 +71,11 @@ const sum = (tbl, col) => {
 }
 
 const save = (data, type, table, id) => {
-    return new Promise(function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         let field = '';
         let val = '';
         let values = [];
+        let query = '';
 
         
         if(type === 'new') {
@@ -82,10 +90,8 @@ const save = (data, type, table, id) => {
                 val += '$' + (count + 1) + ', ';
                 values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
             }
-            pool.query(`INSERT INTO ${table}(${field}date_created) VALUES(${val}now())`, values, (error, result) => {
-                if(error) reject(error);
-                resolve('success');
-            });
+            
+            query = `INSERT INTO ${table}(${field}date_created) VALUES(${val}now())`;
         }
         else {
             delete data['date_created'];
@@ -99,17 +105,19 @@ const save = (data, type, table, id) => {
             }
 
             values.push(id);
-            pool.query(`UPDATE ${table} SET ${field}date_updated= now() WHERE id= $${values.length}`, values, (error, result) => {
-                if(error) reject(error);
-                resolve('success');
-            });
+            query = `UPDATE ${table} SET ${field}date_updated= now() WHERE id= $${values.length}`;
         }
+        
+        await pool.query(query, values, (error, result) => {
+            if(error) reject(error);
+            resolve('success');
+        });
     });
 }
 
 const get = (id, table) => {
-    return new Promise(function(resolve, reject) {
-        pool.query(`SELECT * FROM ${table} WHERE id = $1`, [parseInt(id)], (error, result) => {
+    return new Promise(async function(resolve, reject) {
+        await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [parseInt(id)], (error, result) => {
             if(error) reject(error);
             resolve(result.rows);
         });
