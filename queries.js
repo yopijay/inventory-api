@@ -29,6 +29,9 @@ const getAll = (tbl) => {
                 query = `SELECT * FROM ${ tbl } ORDER BY date_created DESC`;
         }
 
+        resolve(query);
+        return;
+
         pool.query(query, (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
