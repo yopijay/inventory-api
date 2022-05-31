@@ -31,7 +31,8 @@ const getAll = (tbl) => {
 
         pool.query(query, (error, results) => {
             if(error) reject(error);
-            resolve(results.rows);
+            resolve(results);
+            // resolve(results.rows);
         });
     });
 }
