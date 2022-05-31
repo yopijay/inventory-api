@@ -12,6 +12,10 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.get('/', (req, res) => {
+    res.send("WORKING!");
+});
+
 app.get('/getall/:tbl', (req, res) => {
     query.getAll(req.params.tbl).then(response => {
         res.status(200).send(response);
