@@ -14,31 +14,30 @@ const pool = new Pool({
 const getAll = (tbl) => {
     return new Promise(function(resolve, reject) {
         query = '';
-        resolve(pool.connect());
-        // switch(tbl) {
-        //     case 'brand' :
-        //         query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.description, ${tbl}.status, category.id as category_id, category.name as category_name 
-        //                         FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id ORDER BY ${tbl}.date_created DESC`;
-        //         break;
-        //     case 'assets' :
-        //         query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, category.id as category_id, category.name as category_name,
-        //                         brand.id as brand_id, brand.name as brand_name FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id
-        //                         LEFT JOIN brand ON ${tbl}.brand_id = brand.id ORDER BY ${tbl}.date_created DESC`;
-        //         break;
-        //     case 'assigned_asset':
-        //         query = `SELECT ${tbl}.id, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, assets.id as asset_id, assets.name as asset_name, brand.name as brand_name,
-        //                         users.id as user_id, users.fname, users.mname, users.lname FROM ${tbl} LEFT JOIN assets ON ${tbl}.asset_id = assets.id LEFT JOIN brand ON
-        //                         assets.brand_id = brand.id LEFT JOIN users ON ${tbl}.user_id = users.id ORDER BY ${tbl}.date_created DESC`;
-        //         break;
-        //     default: 
-        //         query = `SELECT * FROM ${ tbl } ORDER BY date_created DESC`;
-        // }
+        switch(tbl) {
+            case 'brand' :
+                query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.description, ${tbl}.status, category.id as category_id, category.name as category_name 
+                                FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id ORDER BY ${tbl}.date_created DESC`;
+                break;
+            case 'assets' :
+                query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, category.id as category_id, category.name as category_name,
+                                brand.id as brand_id, brand.name as brand_name FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id
+                                LEFT JOIN brand ON ${tbl}.brand_id = brand.id ORDER BY ${tbl}.date_created DESC`;
+                break;
+            case 'assigned_asset':
+                query = `SELECT ${tbl}.id, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, assets.id as asset_id, assets.name as asset_name, brand.name as brand_name,
+                                users.id as user_id, users.fname, users.mname, users.lname FROM ${tbl} LEFT JOIN assets ON ${tbl}.asset_id = assets.id LEFT JOIN brand ON
+                                assets.brand_id = brand.id LEFT JOIN users ON ${tbl}.user_id = users.id ORDER BY ${tbl}.date_created DESC`;
+                break;
+            default: 
+                query = `SELECT * FROM ${ tbl } ORDER BY date_created DESC`;
+        }
 
-        // pool.query(query, (error, results) => {
-        //     if(error) reject(error);
-        //     resolve(results);
-        //     // resolve(results.rows);
-        // });
+        pool.query(query, (error, results) => {
+            if(error) reject(error);
+            resolve(results);
+            // resolve(results.rows);
+        });
     });
 }
 
