@@ -1,40 +1,44 @@
 const Pool = require('pg').Pool;
 const pool = new Pool({
-    connectionString: 'postgres://pkvlqsfxmtlcii:45a131b713a6815084a0cba2e9ec231ada5991b3ad755271852f7749500248dc@ec2-3-234-131-8.compute-1.amazonaws.com:5432/ddt6n0mj96ovss',
-    user: 'pkvlqsfxmtlcii',
-    host: 'ec2-3-234-131-8.compute-1.amazonaws.com',
-    database: 'ddt6n0mj96ovss',
-    password: '45a131b713a6815084a0cba2e9ec231ada5991b3ad755271852f7749500248dc',
-    port: 5432
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: true
+    }
+    // user: 'pkvlqsfxmtlcii',
+    // host: 'ec2-3-234-131-8.compute-1.amazonaws.com',
+    // database: 'ddt6n0mj96ovss',
+    // password: '45a131b713a6815084a0cba2e9ec231ada5991b3ad755271852f7749500248dc',
+    // port: 5432
 });
 
 const getAll = (tbl) => {
     return new Promise(function(resolve, reject) {
         query = '';
-        switch(tbl) {
-            case 'brand' :
-                query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.description, ${tbl}.status, category.id as category_id, category.name as category_name 
-                                FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id ORDER BY ${tbl}.date_created DESC`;
-                break;
-            case 'assets' :
-                query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, category.id as category_id, category.name as category_name,
-                                brand.id as brand_id, brand.name as brand_name FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id
-                                LEFT JOIN brand ON ${tbl}.brand_id = brand.id ORDER BY ${tbl}.date_created DESC`;
-                break;
-            case 'assigned_asset':
-                query = `SELECT ${tbl}.id, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, assets.id as asset_id, assets.name as asset_name, brand.name as brand_name,
-                                users.id as user_id, users.fname, users.mname, users.lname FROM ${tbl} LEFT JOIN assets ON ${tbl}.asset_id = assets.id LEFT JOIN brand ON
-                                assets.brand_id = brand.id LEFT JOIN users ON ${tbl}.user_id = users.id ORDER BY ${tbl}.date_created DESC`;
-                break;
-            default: 
-                query = `SELECT * FROM ${ tbl } ORDER BY date_created DESC`;
-        }
+        resolve(pool.connect());
+        // switch(tbl) {
+        //     case 'brand' :
+        //         query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.description, ${tbl}.status, category.id as category_id, category.name as category_name 
+        //                         FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id ORDER BY ${tbl}.date_created DESC`;
+        //         break;
+        //     case 'assets' :
+        //         query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, category.id as category_id, category.name as category_name,
+        //                         brand.id as brand_id, brand.name as brand_name FROM ${tbl} LEFT JOIN category ON ${tbl}.category_id = category.id
+        //                         LEFT JOIN brand ON ${tbl}.brand_id = brand.id ORDER BY ${tbl}.date_created DESC`;
+        //         break;
+        //     case 'assigned_asset':
+        //         query = `SELECT ${tbl}.id, ${tbl}.quantity, ${tbl}.status, ${tbl}.date_created, assets.id as asset_id, assets.name as asset_name, brand.name as brand_name,
+        //                         users.id as user_id, users.fname, users.mname, users.lname FROM ${tbl} LEFT JOIN assets ON ${tbl}.asset_id = assets.id LEFT JOIN brand ON
+        //                         assets.brand_id = brand.id LEFT JOIN users ON ${tbl}.user_id = users.id ORDER BY ${tbl}.date_created DESC`;
+        //         break;
+        //     default: 
+        //         query = `SELECT * FROM ${ tbl } ORDER BY date_created DESC`;
+        // }
 
-        pool.query(query, (error, results) => {
-            if(error) reject(error);
-            resolve(results);
-            // resolve(results.rows);
-        });
+        // pool.query(query, (error, results) => {
+        //     if(error) reject(error);
+        //     resolve(results);
+        //     // resolve(results.rows);
+        // });
     });
 }
 
