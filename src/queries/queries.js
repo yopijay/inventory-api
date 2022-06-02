@@ -27,7 +27,7 @@ const getAll = (tbl) => {
     });
 }
 
-const options = (tbl, columns, id) => {
+const options = (tbl, columns) => {
     return new Promise(async function(resolve, reject) {
         await pool.query(`SELECT ${columns} FROM ${tbl} WHERE status= 1 ORDER BY id ASC`, (error, results) => {
             if(error) reject(error);
