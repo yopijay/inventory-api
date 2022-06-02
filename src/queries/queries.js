@@ -7,6 +7,8 @@ const getAll = (tbl) => {
        
         switch(tbl) {
             case 'brand':
+                query = `SELECT brand.id, brand.name, brand.status, brand.date_created, category.id as category_id, category.name as category_name FROM ${tbl} 
+                                LEFT JOIN category ON ${tbl}.category_id = category.id ORDER BY date_created DESC`;
                 break;
 
             case 'assets':
@@ -54,43 +56,47 @@ const sum = (tbl, col) => {
     });
 }
 
-const save = (data, type, table, id) => {
+const save = (data, table) => {
     return new Promise(async function(resolve, reject) {
         let field = '';
         let val = '';
         let values = [];
+
+        if(table === 'assigned_asset') {
+            delete data['brand_id'];
+            delete data['category_id'];
+        }
+        
+        for (let count = 0; count < Object.keys(data).length; count++) {
+            field += Object.keys(data)[count] + ', ';
+            val += '$' + (count + 1) + ', ';
+            values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
+        }
+        await pool.query(`INSERT INTO ${table}(${field}date_created) VALUES(${val}now())`, values, (error, result) => {
+            if(error) reject(error);
+            resolve('success');
+        });
+    });
+}
+
+const update = (data, table, id) => {
+    return new Promise(async function(resolve, reject) {
+        let field = '';
+        let values = [];
         let query = '';
 
-        
-        if(type === 'new') {
+        delete data['date_created'];
+        delete data['date_updated'];
+        delete data['date_deleted'];
+        delete data['id'];
 
-            if(table === 'assigned_asset') {
-                delete data['brand_id'];
-                delete data['category_id'];
-            }
-            
-            for (let count = 0; count < Object.keys(data).length; count++) {
-                field += Object.keys(data)[count] + ', ';
-                val += '$' + (count + 1) + ', ';
-                values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
-            }
-            
-            query = `INSERT INTO ${table}(${field}date_created) VALUES(${val}now())`;
+        for (let count = 0; count < Object.keys(data).length; count++) {
+            field += Object.keys(data)[count] + '= $' + (count + 1) + ', ';
+            values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
         }
-        else {
-            delete data['date_created'];
-            delete data['date_updated'];
-            delete data['date_deleted'];
-            delete data['id'];
 
-            for (let count = 0; count < Object.keys(data).length; count++) {
-                field += Object.keys(data)[count] + '= $' + (count + 1) + ', ';
-                values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
-            }
-
-            values.push(id);
-            query = `UPDATE ${table} SET ${field}date_updated= now() WHERE id= $${values.length}`;
-        }
+        values.push(id);
+        query = `UPDATE ${table} SET ${field}date_updated= now() WHERE id= $${values.length}`;
         
         await pool.query(query, values, (error, result) => {
             if(error) reject(error);
@@ -114,5 +120,6 @@ module.exports = {
     save,
     get,
     options,
-    sum
+    sum,
+    update
 }

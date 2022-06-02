@@ -47,8 +47,16 @@ router.get('/count/:tbl', (req, res) => {
 });
 
 // Save & Update
-router.post('/:type/:tbl/:id', (req, res) => {
-    query.save(req.body, req.params.type, req.params.tbl, req.params.id).then(response => {
+router.post('/new/:tbl', (req, res) => {
+    query.save(req.body, req.params.tbl).then(response => {
+        res.status(200).send(response);
+    }).catch(error => {
+        res.status(200).send(error)
+    });
+});
+
+router.post('/update/:tbl/:id', (req, res) => {
+    query.save(req.body, req.params.tbl, req.params.id).then(response => {
         res.status(200).send(response);
     }).catch(error => {
         res.status(200).send(error)
