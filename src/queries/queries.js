@@ -7,7 +7,7 @@ const getAll = (tbl) => {
        
         switch(tbl) {
             case 'brand':
-                query = `SELECT brand.id, brand.name, brand.status, brand.date_created, category.id as category_id, category.name as category_name FROM ${tbl} 
+                query = `SELECT ${tbl}.id, ${tbl}.name, ${tbl}.description, ${tbl}.status, ${tbl}.date_created, category.id as category_id, category.name as category_name FROM ${tbl} 
                                 LEFT JOIN category ON ${tbl}.category_id = category.id ORDER BY date_created DESC`;
                 break;
 
@@ -92,7 +92,7 @@ const update = (data, table, id) => {
 
         for (let count = 0; count < Object.keys(data).length; count++) {
             field += Object.keys(data)[count] + '= $' + (count + 1) + ', ';
-            values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
+            values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true || data[Object.keys(data)[count]] === 1 ? 1 : 0 : data[Object.keys(data)[count]]);
         }
 
         values.push(id);

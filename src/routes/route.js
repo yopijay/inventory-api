@@ -56,7 +56,7 @@ router.post('/new/:tbl', (req, res) => {
 });
 
 router.post('/update/:tbl/:id', (req, res) => {
-    query.save(req.body, req.params.tbl, req.params.id).then(response => {
+    query.update(req.body, req.params.tbl, req.params.id).then(response => {
         res.status(200).send(response);
     }).catch(error => {
         res.status(200).send(error)
