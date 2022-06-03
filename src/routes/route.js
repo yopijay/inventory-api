@@ -15,6 +15,12 @@ router.get('/getall/:tbl', (req, res) => {
 // Options/Select dropdowns values
 router.get('/option/:tbl/:cols', (req, res) => {
     query.options(req.params.tbl, req.params.cols).then(response => {
+        res.status(200).send(response); 
+    }).catch(error => { res.status(200).send(error); });
+});
+
+router.get('/option/per/:tbl/:cols/:id', (req, res) => {
+    query.optionPer(req.params.tbl, req.params.cols, req.params.id).then(response => {
         res.status(200).send(response);
     }).catch(error => { res.status(200).send(error); });
 });
