@@ -46,11 +46,11 @@ const optionPer = (tbl, columns, id) => {
         query = '';
 
         switch(tbl) {
-            case 'category':
-                query = `SELECT ${columns} FROM brand WHERE ${tbl}_id = ${ id }`;
+            case 'brand':
+                query = `SELECT ${columns} FROM ${tbl} WHERE category_id = ${ id } AND status = 1 ORDER BY date_created DESC`;
                 break;
         }
-
+        
         pool.query(query, (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
