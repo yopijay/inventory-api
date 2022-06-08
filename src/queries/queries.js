@@ -92,7 +92,8 @@ const save = (data, table) => {
             val += '$' + (count + 1) + ', ';
             values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
         }
-        pool.query(`INSERT INTO ${table}(${field}date_created) VALUES(${val}now())`, values, (error, result) => {
+        
+        pool.query(`INSERT INTO ${table}(${field}created_by, date_created) VALUES(${val} 1, CURRENT_TIMESTAMP)`, values, (error, result) => {
             if(error) reject(error);
             resolve('success');
         });
