@@ -117,7 +117,7 @@ const update = (data, table, id) => {
         }
 
         values.push(id);
-        query = `UPDATE ${table} SET ${field}date_updated= now() WHERE id= $${values.length}`;
+        query = `UPDATE ${table} SET ${field}updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= $${values.length}`;
         
         pool.query(query, values, (error, result) => {
             if(error) reject(error);
