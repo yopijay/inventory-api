@@ -36,6 +36,46 @@ const getAll = (tbl) => {
     });
 }
 
+const reports = (tbl) => {
+    return new Promise(function(resolve, reject) {
+        let query = '';
+
+        switch(tbl) {
+            case 'category':
+                query = `SELECT ${tbl}.series_no, ${tbl}.name, ${tbl}.status, ${tbl}.date_created, ${tbl}.date_updated, CONCAT(user1.lname, ', ', user1.fname, ' ', user1.mname) as created_by,
+                                CONCAT(user2.lname, ', ', user2.fname, ' ', user2.mname) as updated_by, COUNT(brand.*) AS total FROM ${tbl} LEFT JOIN users as user1 ON ${tbl}.created_by = user1.id
+                                LEFT JOIN users as user2 ON ${tbl}.updated_by = user2.id LEFT JOIN brand ON category.id = brand.category_id WHERE brand.category_id = category.id 
+                                GROUP BY ${tbl}.series_no, ${tbl}.name, ${tbl}.status, ${tbl}.date_created, ${tbl}.date_updated, user1.lname, user1.fname, user1.mname, user2.lname, 
+                                user2.fname, user2.mname ORDER BY ${tbl}.date_created ASC`;
+                break;
+            case 'brand':
+                query = `SELECT ${tbl}.series_no, ${tbl}.name, ${tbl}.status, ${tbl}.date_created, ${tbl}.date_updated, CONCAT(user1.lname, ', ', user1.fname, ' ', user1.mname) as created_by,
+                                CONCAT(user2.lname, ', ', user2.fname, ' ', user2.mname) as updated_by, COUNT(assets.*) AS total, category.name as category_name FROM ${tbl} 
+                                LEFT JOIN users as user1 ON ${tbl}.created_by = user1.id LEFT JOIN users as user2 ON ${tbl}.updated_by = user2.id 
+                                LEFT JOIN category ON brand.category_id = category.id LEFT JOIN assets ON brand.id = assets.brand_id WHERE assets.brand_id = brand.id
+                                GROUP BY ${tbl}.series_no, ${tbl}.name, ${tbl}.status, ${tbl}.date_created, ${tbl}.date_updated, user1.lname, user1.fname, user1.mname, user2.lname, 
+                                user2.fname, user2.mname, category.name ORDER BY ${tbl}.date_created ASC`;
+                break;
+            case 'users':
+                query= `SELECT ${tbl}.series_no, CONCAT(${tbl}.lname, ', ', ${tbl}.fname, ' ', ${tbl}.mname) as fullname, ${tbl}.civil_status, ${tbl}.address, 
+                                CONCAT(${tbl}.bmonth, '/', ${tbl}.bday, '/', ${tbl}.byear) as birthdate, ${tbl}.status, ${tbl}.date_created, ${tbl}.date_updated, department.name as department_name, 
+                                position.name as position_name, CONCAT(user1.lname, ', ', user1.fname, ' ', user1.mname) as created_by, CONCAT(user2.lname, ', ', user2.fname, ' ', 
+                                user2.mname) as updated_by, COUNT(assigned_asset.*) AS total FROM ${tbl} LEFT JOIN users as user1 ON ${tbl}.created_by = user1.id 
+                                LEFT JOIN users as user2 ON ${tbl}.updated_by = user2.id LEFT JOIN department ON ${tbl}.department_id = department.id 
+                                LEFT JOIN position ON ${tbl}.position_id = position.id LEFT JOIN assigned_asset ON assigned_asset.user_id = users.id WHERE users.id = assigned_asset.user_id
+                                GROUP BY ${tbl}.series_no, ${tbl}.lname, ${tbl}.fname, ${tbl}.mname, ${tbl}.civil_status, ${tbl}.address, ${tbl}.bmonth, ${tbl}.bday, ${tbl}.byear,
+                                ${tbl}.status, ${tbl}.date_created, ${tbl}.date_updated, department.name, position.name, user1.lname, user1.fname, user1.mname, user2.lname, user2.fname, user2.mname
+                                ORDER BY ${tbl}.date_created ASC`;
+                break;
+        }
+
+        pool.query(query, (error, results) => {
+            if (error) reject(error);
+            resolve(results.rows);
+        });
+    });
+}
+
 const options = (tbl, columns) => {
     return new Promise((resolve, reject) => {
         pool.query(`SELECT ${columns} FROM ${tbl} WHERE status= 1 ORDER BY id ASC`, (error, results) => {
@@ -100,9 +140,23 @@ const save = (data, table) => {
             values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
         }
         
-        pool.query(`INSERT INTO ${table}(${field}created_by, date_created) VALUES(${val} 1, CURRENT_TIMESTAMP)`, values, (error, result) => {
+        pool.query(`INSERT INTO ${table}(${field}created_by, date_created) VALUES(${val} 1, CURRENT_TIMESTAMP) RETURNING id`, values, (error, result) => {
             if(error) reject(error);
-            resolve('success');
+            let id = result.rows[0].id;
+            let log_no = Math.floor(100000 + Math.random() * 900000);
+            
+            if(table === 'assigned_asset') {
+                pool.query(`SELECT quantity FROM assets WHERE id= ${data.asset_id}`, (error, result) => {
+                    if(error) reject(error);
+                    let quantity = parseInt(result.rows[0].quantity) - parseInt(data.quantity);
+                    pool.query(`UPDATE assets SET quantity= $1 WHERE id= $2`, [quantity, data.asset_id]);
+                });
+            }
+
+            pool.query(`INSERT INTO logs(log_no, table_name, item_id, label, user_id, date) VALUES($1, $2, $3, $4, 1, CURRENT_TIMESTAMP)`, [`#${log_no}`, table, id, 'new'], (error, result) => {
+                if(error) reject(error);
+                resolve('success');
+            });
         });
     });
 }
@@ -113,10 +167,13 @@ const update = (data, table, id) => {
         let values = [];
         let query = '';
 
-        delete data['date_created'];
-        delete data['date_updated'];
-        delete data['date_deleted'];
-        delete data['id'];
+        delete data.date_created;
+        delete data.date_updated;
+        delete data.date_deleted;
+        delete data.created_by;
+        delete data.updated_by;
+        delete data.deleted_by;
+        delete data.id;
 
         for (let count = 0; count < Object.keys(data).length; count++) {
             field += Object.keys(data)[count] + '= $' + (count + 1) + ', ';
@@ -128,7 +185,12 @@ const update = (data, table, id) => {
         
         pool.query(query, values, (error, result) => {
             if(error) reject(error);
-            resolve('success');
+            let log_no = Math.floor(100000 + Math.random() * 900000);
+
+            pool.query(`INSERT INTO logs(log_no, table_name, item_id, label, user_id, date) VALUES($1, $2, $3, $4, 1, CURRENT_TIMESTAMP)`, [`#${log_no}`, table, id, 'update'], (error, result) => {
+                if(error) reject(error);
+                resolve('success');
+            });
         });
     });
 }
@@ -150,5 +212,6 @@ module.exports = {
     options,
     sum,
     update,
-    optionPer
+    optionPer,
+    reports
 }
