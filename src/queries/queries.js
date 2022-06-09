@@ -23,6 +23,11 @@ const getAll = (tbl) => {
                                 assets.id as asset_id, assets.brand_id, assets.name as asset_name, brand.name as brand_name FROM ${tbl} LEFT JOIN users ON ${tbl}.user_id = users.id
                                 LEFT JOIN assets ON ${tbl}.asset_id = assets.id LEFT JOIN brand ON assets.brand_id = brand.id ORDER BY ${tbl}.date_created DESC`;
                 break;
+            
+            case 'logs':
+                query = `SELECT ${tbl}.log_no, ${tbl}.table_name, ${tbl}.label, ${tbl}.date, CONCAT(users.lname, ', ', users.fname, ' ', users.mname) AS responsible FROM ${tbl}
+                                LEFT JOIN users ON ${tbl}.user_id = users.id ORDER BY date DESC`;
+                break;
 
             default:
                 query = `SELECT * FROM ${tbl} ORDER BY date_created DESC`;
