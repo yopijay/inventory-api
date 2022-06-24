@@ -2,38 +2,14 @@
 const { query } = require('express');
 const pool = require('../connection/conn');
 
+// CRUD
+const GetAll = require('./crud/getall'); // Get all data for listing
+const Save = require('./crud/save');
+const Update = require('./crud/update'); // Updating of data
+
 const getAll = (tbl) => {
     return new Promise(function(resolve, reject) {
-        let query = '';
-       
-        switch(tbl) {
-            case 'brand':
-                query = `SELECT tbl_${tbl}.id, tbl_${tbl}.series_no, tbl_${tbl}.name, tbl_${tbl}.description, tbl_${tbl}.status, tbl_${tbl}.date_created, tbl_category.id as category_id, 
-                                tbl_category.name as category_name FROM tbl_${tbl} 
-                                LEFT JOIN tbl_category ON tbl_${tbl}.category_id = tbl_category.id ORDER BY date_created DESC`;
-                break;
-            case 'assets':
-                query = `SELECT tbl_${tbl}.id, tbl_${tbl}.series_no, tbl_${tbl}.name, tbl_${tbl}.quantity, tbl_${tbl}.status, tbl_${tbl}.date_created, 
-                                tbl_category.id as category_id, tbl_category.name as category_name,
-                                tbl_brand.id as brand_id, tbl_brand.name as brand_name FROM tbl_${tbl} LEFT JOIN tbl_category ON tbl_${tbl}.category_id = tbl_category.id
-                                LEFT JOIN tbl_brand ON tbl_${tbl}.brand_id = tbl_brand.id ORDER BY tbl_${tbl}.date_created DESC`;
-                break;
-            case 'assigned_asset':
-                query = `SELECT tbl_${tbl}.id, tbl_${tbl}.series_no, tbl_${tbl}.quantity, tbl_${tbl}.status, tbl_${tbl}.date_created, tbl_users.id as user_id, 
-                                CONCAT(lname, ', ', fname, ' ', mname) as user_fullname,
-                                tbl_assets.id as asset_id, tbl_assets.brand_id, tbl_assets.name as asset_name, brand.name as brand_name FROM tbl_${tbl} LEFT JOIN users ON tbl_${tbl}.user_id = tbl_users.id
-                                LEFT JOIN tbl_assets ON tbl_${tbl}.asset_id = tbl_assets.id LEFT JOIN tbl_brand ON tbl_assets.brand_id = tbl_brand.id ORDER BY tbl_${tbl}.date_created DESC`;
-                break;
-            case 'logs':
-                query = `SELECT tbl_${tbl}.log_no, tbl_${tbl}.table_name, tbl_${tbl}.label, tbl_${tbl}.date, CONCAT(tbl_users.lname, ', ', tbl_users.fname, ' ', tbl_users.mname) AS responsible FROM tbl_${tbl}
-                                LEFT JOIN tbl_users ON tbl_${tbl}.user_id = tbl_users.id ORDER BY date DESC`;
-                break;
-            default:
-                query = `SELECT * FROM tbl_${tbl} ORDER BY date_created DESC`;
-                break;
-        }
-        
-        pool.query(query, (error, results) => {
+        pool.query(new GetAll()[`${tbl}`](), (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -137,127 +113,47 @@ const sum = (tbl, col) => {
 }
 
 const save = (data, table) => {
-    return new Promise((resolve, reject) => {
-        let field = '';
-        let val = '';
-        let values = [];
+    let field = '';
+    let val = '';
+    let values = [];
 
-        if(table === 'assigned_asset') {
-            delete data['brand_id'];
-            delete data['category_id'];
-        }
+    if(table === 'assigned_asset') {
+        delete data['brand_id'];
+        delete data['category_id'];
+    }
+    else if(table === 'users') {
+        delete data['department_id'];
+        delete data['position_id'];
+    }
         
-        for (let count = 0; count < Object.keys(data).length; count++) {
-            field += Object.keys(data)[count] + ', ';
-            val += '$' + (count + 1) + ', ';
-            values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
-        }
+    for (let count = 0; count < Object.keys(data).length; count++) {
+        field += Object.keys(data)[count] + ', ';
+        val += '$' + (count + 1) + ', ';
+        values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
+    }
 
-        switch(table) {
-            case 'category':
-                    pool.query(`SELECT * FROM tbl_${table} WHERE name= $1`,[ data.name ], (error, result) => {
-                        if(error) reject(error);
-                        
-                        if(((result.rows).length !== 0)) {
-                            resolve({ result: 'error',  message: 'Name already exist' });
-                        }
-                        else {
-                            pool.query(`INSERT INTO tbl_${table}(${field}created_by, date_created) VALUES(${val} 1, CURRENT_TIMESTAMP)`, values, (error) => {
-                                if(error) reject(error);
-                                resolve({ result: 'success', message: "Successfully saved!" });
-                            });
-                        }
-                    });
-                break;
-            case 'brand':
-                    pool.query(`SELECT * FROM tbl_${table} WHERE name= $1 AND category_id= $2`,[ data.name, data.category_id ], (error, result) => {
-                        if(error) reject(error);
-                        
-                        if(((result.rows).length !== 0)) {
-                            resolve({ result: 'error',  message: 'Name already exist' });
-                        }
-                        else {
-                            pool.query(`INSERT INTO tbl_${table}(${field}created_by, date_created) VALUES(${val} 1, CURRENT_TIMESTAMP)`, values, (error) => {
-                                if(error) reject(error);
-                                resolve({ result: 'success', message: "Successfully saved!" });
-                            });
-                        }
-                    });
-                break;
-            case 'assets':
-                    pool.query(`SELECT * FROM tbl_${table} WHERE name= $1 AND category_id= $2 AND brand_id= $3`,[ data.name, data.category_id, data.brand_id ], (error, result) => {
-                        if(error) reject(error);
-                        
-                        if(((result.rows).length !== 0)) {
-                            resolve({ result: 'error',  message: 'Name already exist' });
-                        }
-                        else {
-                            pool.query(`INSERT INTO tbl_${table}(${field}created_by, date_created) VALUES(${val} 1, CURRENT_TIMESTAMP)`, values, (error) => {
-                                if(error) reject(error);
-                                resolve({ result: 'success', message: "Successfully saved!" });
-                            });
-                        }
-                    });
-                break;
-            case 'assigned_asset':
-                    pool.query(`SELECT * FROM tbl_${table}`, (error, result) => {
-                        if(error) reject(error);
-                        
-                        if(((result.rows).length !== 0)) {
-                            resolve({ result: 'error',  message: 'Name already exist' });
-                        }
-                        else {
-                            pool.query(`INSERT INTO tbl_${table}(${field}created_by, date_created) VALUES(${val} 1, CURRENT_TIMESTAMP)`, values, (error) => {
-                                if(error) reject(error);
-
-                                pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${data.asset_id}`, (error, result) => {
-                                    if(error) reject(error);
-                                    let quantity = parseInt(result.rows[0].quantity) - parseInt(data.quantity);
-                                    pool.query(`UPDATE tbl_assets SET quantity= $1 WHERE id= $2`, [quantity, data.asset_id], (error) => {
-                                        if(error) eject(error);
-                                        resolve({ result: 'success', message: "Successfully saved!" });
-                                    });
-                                });
-                            });
-                        }
-                    });
-                break;
-        }
-    });
+    return new Save(data, field, values, val)[`${table}`]();
 }
 
 const update = (data, table, id) => {
-    return new Promise((resolve, reject) => {
-        let field = '';
-        let values = [];
-        let query = '';
+    let field = '';
+    let values = [];
 
-        delete data.date_created;
-        delete data.date_updated;
-        delete data.date_deleted;
-        delete data.created_by;
-        delete data.updated_by;
-        delete data.deleted_by;
-        delete data.id;
+    delete data.date_created;
+    delete data.date_updated;
+    delete data.date_deleted;
+    delete data.created_by;
+    delete data.updated_by;
+    delete data.deleted_by;
+    delete data.id;
 
-        for (let count = 0; count < Object.keys(data).length; count++) {
-            field += Object.keys(data)[count] + '= $' + (count + 1) + ', ';
-            values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true || data[Object.keys(data)[count]] === 1 ? 1 : 0 : data[Object.keys(data)[count]]);
-        }
+    for (let count = 0; count < Object.keys(data).length; count++) {
+        field += Object.keys(data)[count] + '= $' + (count + 1) + ', ';
+        values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true || data[Object.keys(data)[count]] === 1 ? 1 : 0 : data[Object.keys(data)[count]]);
+    }
 
-        values.push(id);
-        query = `UPDATE tbl_${table} SET ${field}updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= $${values.length}`;
-        
-        pool.query(query, values, (error, result) => {
-            if(error) reject(error);
-            let log_no = Math.floor(100000 + Math.random() * 900000);
-
-            pool.query(`INSERT INTO tbl_logs(log_no, table_name, item_id, label, user_id, date) VALUES($1, $2, $3, $4, 1, CURRENT_TIMESTAMP)`, [`#${log_no}`, table, id, 'update'], (error, result) => {
-                if(error) reject(error);
-                resolve('success');
-            });
-        });
-    });
+    values.push(id);
+    return new Update(data, field, values, id)[`${table}`]();
 }
 
 const get = (id, table) => {

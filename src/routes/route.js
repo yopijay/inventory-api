@@ -59,7 +59,7 @@ router.get('/count/:tbl', (req, res) => {
     });
 });
 
-// Save & Update
+// Save
 router.post('/new/:tbl', (req, res) => {
     query.save(req.body, req.params.tbl).then(response => {
         res.status(200).send(response);
@@ -68,6 +68,7 @@ router.post('/new/:tbl', (req, res) => {
     });
 });
 
+// Update
 router.post('/update/:tbl/:id', (req, res) => {
     query.update(req.body, req.params.tbl, req.params.id).then(response => {
         res.status(200).send(response);
