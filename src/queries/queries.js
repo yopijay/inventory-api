@@ -4,8 +4,10 @@ const pool = require('../connection/conn');
 
 // CRUD
 const GetAll = require('./crud/getall'); // Get all data for listing
-const Save = require('./crud/save');
+const Save = require('./crud/save'); // Saving of data
 const Update = require('./crud/update'); // Updating of data
+const Options = require('./crud/options'); // Dropdown items
+const OptionsPer = require('./crud/optionsper'); // Dropdown items per id
 
 const getAll = (tbl) => {
     return new Promise(function(resolve, reject) {
@@ -67,7 +69,7 @@ const reports = (tbl) => {
 
 const options = (tbl, columns) => {
     return new Promise((resolve, reject) => {
-        pool.query(`SELECT ${columns} FROM tbl_${tbl} WHERE status= 1 ORDER BY id ASC`, (error, results) => {
+        pool.query(new Options(columns)[`${tbl}`](), (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -76,18 +78,8 @@ const options = (tbl, columns) => {
 
 const optionPer = (tbl, columns, id) => {
     return new Promise((resolve, reject) => {
-        let query = '';
 
-        switch(tbl) {
-            case 'brand':
-                query = `SELECT ${columns} FROM tbl_${tbl} WHERE category_id = ${id} AND status = 1 ORDER BY date_created ASC`;
-                break;
-            case 'assets':
-                query = `SELECT ${columns} FROM tbl_${tbl} WHERE brand_id = ${id} AND status = 1 ORDER BY date_created ASC`;
-                break;
-        }
-
-        pool.query(query, (error, results) => {
+        pool.query(new OptionsPer(columns, id)[`${tbl}`](), (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -161,7 +153,7 @@ const get = (id, table) => {
         let query = `SELECT * FROM tbl_${table} WHERE id = $1`;
 
         if(table === 'assigned_asset') {
-            query = `SELECT tbl_${table}.*, tbl_category.id AS category_id, tbl_brand.id AS brand_id FROM ${table} LEFT JOIN tbl_assets ON tbl_${table}.asset_id = tbl_assets.id
+            query = `SELECT tbl_${table}.*, tbl_category.id AS category_id, tbl_brand.id AS brand_id FROM tbl_${table} LEFT JOIN tbl_assets ON tbl_${table}.asset_id = tbl_assets.id
                             LEFT JOIN tbl_category ON tbl_category.id = tbl_assets.category_id LEFT JOIN tbl_brand ON tbl_brand.id = tbl_assets.brand_id WHERE tbl_${table}.id = $1`;
         }
         

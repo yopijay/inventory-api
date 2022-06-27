@@ -72,17 +72,28 @@ class Save {
     
     assigned_asset = () => {
         return new Promise((resolve, reject) => {
-            pool.query(`INSERT INTO tbl_assigned_asset(${this.field}created_by, date_created) VALUES(${this.val} 1, CURRENT_TIMESTAMP)`, this.values, (error) => {
+            pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${(this.data).asset_id}`, (error, result) => {
                 if(error) reject(error);
-    
-                pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${(this.data).asset_id}`, (error, result) => {
-                    if(error) reject(error);
-                    let quantity = parseInt(result.rows[0].quantity) - parseInt((this.data).quantity);
-                    pool.query(`UPDATE tbl_assets SET quantity= $1 WHERE id= $2`, [quantity, (this.data).asset_id], (error) => {
+                const err = [];
+
+                if((this.data).quantity > (result.rows[0].quantity)) {
+                    err.push({ name: 'quantity', message: 'Quantity must be lower than or equal to your total assets' });
+                    resolve({ result: 'error', error: err });
+                }
+                else {
+                    pool.query(`INSERT INTO tbl_assigned_asset(${this.field}created_by, date_created) VALUES(${this.val} 1, CURRENT_TIMESTAMP)`, this.values, (error) => {
                         if(error) reject(error);
-                        resolve({ result: 'success', message: "Successfully saved!" });
+            
+                        pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${(this.data).asset_id}`, (error, result) => {
+                            if(error) reject(error);
+                            let quantity = parseInt(result.rows[0].quantity) - parseInt((this.data).quantity);
+                            pool.query(`UPDATE tbl_assets SET quantity= $1 WHERE id= $2`, [quantity, (this.data).asset_id], (error) => {
+                                if(error) reject(error);
+                                resolve({ result: 'success', message: "Successfully saved!" });
+                            });
+                        });
                     });
-                });
+                }
             });
         });
     }
