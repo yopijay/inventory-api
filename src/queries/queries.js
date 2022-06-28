@@ -7,7 +7,7 @@ const GetAll = require('./crud/getall'); // Get all data for listing
 const Save = require('./crud/save'); // Saving of data
 const Update = require('./crud/update'); // Updating of data
 const Options = require('./crud/options'); // Dropdown items
-const OptionsPer = require('./crud/optionsper'); // Dropdown items per id
+const OptionsPer = require('./crud/optionsPer'); // Dropdown items per id
 const Reports = require('./crud/reports'); // Generate Reports;
 
 const getAll = (tbl) => {
