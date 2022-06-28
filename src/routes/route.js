@@ -16,7 +16,7 @@ router.get('/getall/:tbl', (req, res) => {
 router.get('/report/:tbl', (req, res) => {
     query.reports(req.params.tbl).then(response => {
         res.status(200).send(response);
-    }).catch(error => { res.status(200).send(error); })
+    }).catch(error => { res.status(200).send(error); });
 });
 
 // Options/Select dropdowns values
@@ -64,7 +64,7 @@ router.post('/new/:tbl', (req, res) => {
     query.save(req.body, req.params.tbl).then(response => {
         res.status(200).send(response);
     }).catch(error => {
-        res.status(200).send(error)
+        res.status(200).send(error);
     });
 });
 
@@ -73,7 +73,7 @@ router.post('/update/:tbl/:id', (req, res) => {
     query.update(req.body, req.params.tbl, req.params.id).then(response => {
         res.status(200).send(response);
     }).catch(error => {
-        res.status(200).send(error)
+        res.status(200).send(error);
     });
 });
 
