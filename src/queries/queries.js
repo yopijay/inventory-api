@@ -139,6 +139,11 @@ const update = (data, table, id) => {
     delete data.deleted_by;
     delete data.id;
 
+    if(table === 'assigned_asset') {
+        delete data['brand_id'];
+        delete data['category_id'];
+    }
+
     for (let count = 0; count < Object.keys(data).length; count++) {
         field += Object.keys(data)[count] + '= $' + (count + 1) + ', ';
         values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true || data[Object.keys(data)[count]] === 1 ? 1 : 0 : data[Object.keys(data)[count]]);

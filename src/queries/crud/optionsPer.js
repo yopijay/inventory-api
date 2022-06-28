@@ -9,7 +9,7 @@ class OptionsPer {
     }
 
     assets = () => {
-        return `SELECT ${this.columns} FROM tbl_assets WHERE brand_id= ${this.id} AND quantity > 0 ORDER BY id ASC`;
+        return `SELECT ${this.columns} FROM tbl_assets WHERE brand_id= ${this.id} AND status= 1 ORDER BY id ASC`;
     }
 }
 

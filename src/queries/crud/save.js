@@ -72,26 +72,49 @@ class Save {
     
     assigned_asset = () => {
         return new Promise((resolve, reject) => {
-            pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${(this.data).asset_id}`, (error, result) => {
+            pool.query(`SELECT * FROM tbl_assigned_asset WHERE asset_id= ${(this.data).asset_id} AND user_id= ${(this.data).user_id}`, (error, assgn) => {
                 if(error) reject(error);
                 const err = [];
+                let quantity = 0;
 
-                if((this.data).quantity > (result.rows[0].quantity)) {
-                    err.push({ name: 'quantity', message: 'Quantity must be lower than or equal to your total assets' });
-                    resolve({ result: 'error', error: err });
+                if(assgn.rowCount === 0) {
+                    pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${(this.data).asset_id}`, (error, asst) => {
+                        if(error) reject(error);
+
+                        if((this.data).quantity > asst.rows[0].quantity) {
+                            err.push({ name: 'quantity', message: 'Quantity must be lower than or equal to your total assets!' });
+                            resolve({ result: 'error', error: err });
+                        }
+                        else {
+                            pool.query(`INSERT INTO tbl_assigned_asset(${this.field}created_by, date_created) VALUES(${this.val}1, CURRENT_TIMESTAMP)`, this.values, error => {
+                                if(error) reject(error);
+                                quantity = parseInt(asst.rows[0].quantity) - parseInt((this.data).quantity);
+                                pool.query(`UPDATE tbl_assets SET quantity= ${quantity}, updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= ${(this.data).asset_id}`, error=> {
+                                    if(error) reject(error);
+                                    resolve({ result: 'success', message: 'Successfully saved!' });
+                                });
+                            });
+                        }
+                    });
                 }
                 else {
-                    pool.query(`INSERT INTO tbl_assigned_asset(${this.field}created_by, date_created) VALUES(${this.val} 1, CURRENT_TIMESTAMP)`, this.values, (error) => {
+                    pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${(this.data).asset_id}`, (error, asst) => {
                         if(error) reject(error);
-            
-                        pool.query(`SELECT quantity FROM tbl_assets WHERE id= ${(this.data).asset_id}`, (error, result) => {
-                            if(error) reject(error);
-                            let quantity = parseInt(result.rows[0].quantity) - parseInt((this.data).quantity);
-                            pool.query(`UPDATE tbl_assets SET quantity= $1 WHERE id= $2`, [quantity, (this.data).asset_id], (error) => {
-                                if(error) reject(error);
-                                resolve({ result: 'success', message: "Successfully saved!" });
-                            });
-                        });
+
+                        if((this.data).quantity > asst.rows[0].quantity) {
+                            err.push({ name: 'quantity', message: 'Quantity must be lower than or equal to your total assets!' });
+                            resolve({ result: 'error', error: err });
+                        }
+                        else {
+                            quantity = parseInt(assgn.rows[0].quantity) + parseInt((this.data).quantity);
+                            if(pool.query(`UPDATE tbl_assigned_asset SET quantity= ${quantity}, updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= ${assgn.rows[0].id}`)) {
+                                quantity = parseInt(asst.rows[0].quantity) - parseInt((this.data).quantity);
+                                pool.query(`UPDATE tbl_assets SET quantity= ${quantity}, updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= ${(this.data).asset_id}`, error => {
+                                    if(error) reject(error);
+                                    resolve({ result: 'success', message: 'Successfully saved!' });
+                                });
+                            }
+                        }
                     });
                 }
             });
