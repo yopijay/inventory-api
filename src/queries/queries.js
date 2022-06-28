@@ -39,7 +39,6 @@ const options = (tbl, columns) => {
 
 const optionPer = (tbl, columns, id) => {
     return new Promise((resolve, reject) => {
-
         pool.query(new OptionsPer(columns, id)[`${tbl}`](), (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
