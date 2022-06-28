@@ -8,7 +8,7 @@ const app = express();
 const port =process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({ origin: '*' }));
+app.use(cors({ origin: ' https://kcic-inventory-api.herokuapp.com' }));
 app.use(express.json());
 
 // Routes
