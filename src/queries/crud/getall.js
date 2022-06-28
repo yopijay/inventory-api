@@ -6,15 +6,13 @@ class GetAll {
     }
     
     brand = () => {
-        return `SELECT tbl_brand.id, tbl_brand.series_no, tbl_brand.name, tbl_brand.description, tbl_brand.status, tbl_brand.date_created, tbl_category.id as category_id, 
-                    tbl_category.name as category_name FROM tbl_brand 
+        return `SELECT tbl_brand.id, tbl_brand.series_no, tbl_brand.name, tbl_brand.description, tbl_brand.status, tbl_brand.date_created, tbl_category.name as category_name FROM tbl_brand 
                     LEFT JOIN tbl_category ON tbl_brand.category_id = tbl_category.id ORDER BY date_created DESC`;
     }
     
     assets = () => {
-        return `SELECT tbl_assets.id, tbl_assets.series_no, tbl_assets.name, tbl_assets.quantity, tbl_assets.status, tbl_assets.date_created, 
-                    tbl_category.id as category_id, tbl_category.name as category_name,
-                    tbl_brand.id as brand_id, tbl_brand.name as brand_name FROM tbl_assets LEFT JOIN tbl_category ON tbl_assets.category_id = tbl_category.id
+        return `SELECT tbl_assets.id, tbl_assets.series_no, tbl_category.name as category_name, tbl_brand.name as brand_name, tbl_assets.name, tbl_assets.quantity, 
+                    tbl_assets.status, tbl_assets.date_created FROM tbl_assets LEFT JOIN tbl_category ON tbl_assets.category_id = tbl_category.id
                     LEFT JOIN tbl_brand ON tbl_assets.brand_id = tbl_brand.id ORDER BY tbl_assets.date_created DESC`;
     }
     
