@@ -175,6 +175,36 @@ class Update {
             });
         });
     }
+
+    customer = () => {
+        return new Promise((resolve, reject) => {
+            pool.query(`SELECT * FROM tbl_customer WHERE name= '${(this.data).name}' AND id= ${this.id}`, (error, result) => {
+                if(error) reject(error);
+                const err = [];
+                if(result.rowCount === 0) {
+                    pool.query(`SELECT * FROM tbl_customer WHERE name= '${(this.data).name}'`, (error, result) => {
+                        if(error) reject(error);
+                        if(result.rowCount !== 0) {
+                            err.push({ name: 'name', message: 'Customer name already exist!' });
+                            resolve({ result: 'error', error: err });
+                        }
+                        else {
+                            pool.query(`UPDATE tbl_customer SET ${this.field}updated_by=1, date_updated= CURRENT_TIMESTAMP WHERE id= $${(this.values).length}`, this.values, (error) => {
+                                if(error) reject(error);
+                                resolve({ result: 'success', message: 'Successfully Updated!' });
+                            });
+                        }
+                    });
+                }
+                else {
+                    pool.query(`UPDATE tbl_customer SET ${this.field}updated_by=1, date_updated= CURRENT_TIMESTAMP WHERE id= $${(this.values).length}`, this.values, (error) => {
+                        if(error) reject(error);
+                        resolve({ result: 'success', message: 'Successfully Updated!' });
+                    });
+                }
+            });
+        });
+    }
 }
 
 module.exports = Update;

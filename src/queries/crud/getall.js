@@ -27,6 +27,19 @@ class GetAll {
                     LEFT JOIN tbl_users ON tbl_assigned_asset.user_id = tbl_users.id LEFT JOIN tbl_assets ON tbl_assigned_asset.asset_id = tbl_assets.id 
                     LEFT JOIN tbl_brand ON tbl_assets.brand_id = tbl_brand.id ORDER BY tbl_assigned_asset.date_created DESC`;
     }
+
+    customer = () => {
+        return `SELECT * FROM tbl_customer ORDER BY date_created DESC`;
+    }
+
+    test_report = () => {
+        return `SELECT tbl_test_report.id, tbl_basic_information.serial_no, tbl_basic_information.project, tbl_customer.name AS customer, 
+                    CONCAT(users.lname, ', ', users.fname, ' ', users.mname) AS tested_by, tbl_test_report.date_created FROM tbl_test_report
+                    LEFT JOIN tbl_basic_information ON tbl_test_report.basic_information_id = tbl_basic_information.id
+                    LEFT JOIN tbl_customer ON tbl_basic_information.customer_id = tbl_customer.id
+                    LEFT JOIN tbl_users as users ON tbl_test_report.created_by = users.id
+                    ORDER BY tbl_test_report.date_created ASC`;
+    }
 }
 
 module.exports = GetAll;
