@@ -140,6 +140,26 @@ class Save {
             });
         })
     }
+
+    customer = () => {
+        return new Promise((resolve, reject) => {
+            pool.query(`SELECT * FROM tbl_customer WHERE name= '${(this.data).name}'`, (error, result) => {
+                if(error) reject(error);
+                const err = [];
+
+                if(result.rowCount !== 0) {
+                    err.push({ name: 'name', message: 'Customer name already exist!' });
+                    resolve({ result: 'error', error: err });
+                }
+                else {
+                    pool.query(`INSERT INTO tbl_customer(${this.field}created_by, date_created) VALUES(${this.val} 1, CURRENT_TIMESTAMP)`, this.values, (error) => {
+                        if(error) reject(error);
+                        resolve({ result: 'success', message: 'Successfully saved!' });
+                    });
+                }
+            });
+        });
+    }
 }
 
 module.exports = Save;

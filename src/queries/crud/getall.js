@@ -27,6 +27,10 @@ class GetAll {
                     LEFT JOIN tbl_users ON tbl_assigned_asset.user_id = tbl_users.id LEFT JOIN tbl_assets ON tbl_assigned_asset.asset_id = tbl_assets.id 
                     LEFT JOIN tbl_brand ON tbl_assets.brand_id = tbl_brand.id ORDER BY tbl_assigned_asset.date_created DESC`;
     }
+
+    customer = () => {
+        return `SELECT * FROM tbl_customer ORDER BY date_created DESC`;
+    }
 }
 
 module.exports = GetAll;
