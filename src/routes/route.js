@@ -77,4 +77,13 @@ router.post('/update/:tbl/:id', (req, res) => {
     });
 });
 
+// Excel
+router.get('/excel/:tbl', (req, res) => {
+    query.excel(req.params.tbl).then(response => {
+        res.status(200).send(response);
+    }).catch(error => {
+        res.status(200).send(error);
+    });
+});
+
 module.exports = router;
