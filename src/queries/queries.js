@@ -1,6 +1,6 @@
 // Imports
 const { query } = require('express');
-const pool = require('../connection/conn');
+const db = require('../connection/conn');
 
 // CRUD
 const GetAll = require('./crud/getall'); // Get all data for listing
@@ -15,7 +15,7 @@ const Excel = require('./crud/excel'); // Excel
 // Getall data
 const getAll = (tbl) => {
     return new Promise(function(resolve, reject) {
-        pool.query(new GetAll()[`${tbl}`](), (error, results) => {
+        db.query(new GetAll()[`${tbl}`](), (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -25,7 +25,7 @@ const getAll = (tbl) => {
 // Getall reports
 const reports = (tbl) => {
     return new Promise(function(resolve, reject) {
-        pool.query(new Reports()[`${tbl}`](), (error, results) => {
+        db.query(new Reports()[`${tbl}`](), (error, results) => {
             if (error) reject(error);
             resolve(results.rows);
         });
@@ -35,7 +35,7 @@ const reports = (tbl) => {
 // Options
 const options = (tbl, columns) => {
     return new Promise((resolve, reject) => {
-        pool.query(new Options(columns)[`${tbl}`](), (error, results) => {
+        db.query(new Options(columns)[`${tbl}`](), (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
@@ -45,38 +45,15 @@ const options = (tbl, columns) => {
 // Options per items
 const optionPer = (tbl, columns, id) => {
     return new Promise((resolve, reject) => {
-        pool.query(new OptionsPer(columns, id)[`${tbl}`](), (error, results) => {
+        db.query(new OptionsPer(columns, id)[`${tbl}`](), (error, results) => {
             if(error) reject(error);
             resolve(results.rows);
         });
     })
 }
 
-// Count
-const count = (tbl) => {
-    return new Promise((resolve, reject) => {
-        pool.query(`SELECT COUNT(*) FROM tbl_${ tbl }`, (error, results) => {
-            if(error) reject(error);
-            resolve(results.rows);
-        });
-    });
-}
-
-// Sum
-const sum = (tbl, col) => {
-    return new Promise((resolve, reject) => {
-        pool.query(`SELECT SUM(${col}) as total FROM tbl_${tbl}`, (error, results) => {
-            if(error) reject(error);
-            resolve(results.rows);
-        });
-    });
-}
-
 // Saving
 const save = (data, table) => {
-    let field = '';
-    let val = '';
-    let values = [];
 
     if(table === 'assigned_asset') {
         delete data['brand_id'];
@@ -86,14 +63,8 @@ const save = (data, table) => {
         delete data['department_id'];
         delete data['position_id'];
     }
-        
-    for (let count = 0; count < Object.keys(data).length; count++) {
-        field += Object.keys(data)[count] + ', ';
-        val += '$' + (count + 1) + ', ';
-        values.push(Object.keys(data)[count] === 'status' ? data[Object.keys(data)[count]] === true ? 1 : 0 : data[Object.keys(data)[count]]);
-    }
 
-    return new Save(data, field, values, val)[`${table}`]();
+    return new Save(data)[`${table}`]();
 }
 
 // Updating
@@ -126,7 +97,7 @@ const update = (data, table, id) => {
 // Get specific item
 const get = (id, tbl) => {
     return new Promise((resolve, reject) => {
-        pool.query(new Get(id)[`${tbl}`](), (error, result) => {
+        db.query(new Get(id)[`${tbl}`](), (error, result) => {
             if(error) reject(error);
             resolve(result.rows);
         });
@@ -135,7 +106,7 @@ const get = (id, tbl) => {
 
 const excel = (tbl) => {
     return new Promise((resolve, reject) => {
-        pool.query(new Excel()[`${tbl}`](), (error, results) => {
+        db.query(new Excel()[`${tbl}`](), (error, results) => {
             if (error) reject(error);
             resolve(results.rows);
         });
@@ -144,11 +115,9 @@ const excel = (tbl) => {
 
 module.exports = {
     getAll,
-    count,
     save,
     get,
     options,
-    sum,
     update,
     optionPer,
     reports,
