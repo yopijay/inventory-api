@@ -276,8 +276,9 @@ class Update {
                                 }
                             }
 
-                            db.query(`UPDATE tbl_construction_inspection SET draw= '${JSON.stringify((this.data).construction_inspection.draw)}', paint= '${JSON.stringify((this.data).construction_inspection.paint)}', 
-                                                busbar= '${JSON.stringify((this.data).construction_inspection.busbar)}', powercable= '${JSON.stringify((this.data).construction_inspection.powercable)}', 
+                            db.query(`UPDATE tbl_construction_inspection SET draw= '${JSON.stringify((this.data).construction_inspection.draw)}', 
+                                                paint= '${JSON.stringify((this.data).construction_inspection.paint)}', busbar= '${JSON.stringify((this.data).construction_inspection.busbar)}', 
+                                                powercable= '${JSON.stringify((this.data).construction_inspection.powercable)}', 
                                                 nameplate= ${(this.data).construction_inspection.nameplate === '' ? 0 : (this.data).construction_inspection.nameplate}, 
                                                 devicenos= ${(this.data).construction_inspection.devicenos === '' ? 0 : (this.data).construction_inspection.devicenos}, 
                                                 remarks= '${(this.data).construction_inspection.remarks}' WHERE id= ${tr.rows[0].construction_inspection_id}`, error => {
@@ -300,6 +301,7 @@ class Update {
                                                         ct= ${(this.data).electrical_operation.ct === true ? 1 : 0} WHERE id= ${tr.rows[0].electrical_operation_id}`, error => {
                                         if(error) reject(error);
 
+                                        db.query(`UPDATE tbl_test_report SET updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= ${this.id}`);
                                         resolve({ result: 'success', message: 'Successfully updated!' });
                                     });
                                 });
