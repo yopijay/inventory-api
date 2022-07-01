@@ -205,6 +205,111 @@ class Update {
             });
         });
     }
+
+    users = () => {
+        return new Promise((resolve, reject) => {
+            pool.query(`SELECT * FROM tbl_users WHERE fname= '${(this.data).fname}' AND mname= '${(this.data).mname}' 
+                                AND lname= '${(this.data).lname}' AND id= ${this.id}`, (error, exist) => {
+                if(error) reject(error);
+                const err = [];
+
+                if(exist.rowCount === 0) {
+                    pool.query(`SELECT * FROM tbl_users WHERE fname= '${(this.data).fname}' AND mname= '${(this.data).mname}' 
+                                        AND lname= '${(this.data).lname}'`, (error, result) => {
+                        if(error) reject(error);
+                        if(result.rowCount !== 0) {
+                            err.push({ name: 'fname', message: `"${(this.data).fname}" is already exist with your last name: "${(this.data).lname}"!` });
+                            err.push({ name: 'lname', message: 'Kindly change your last name!' });
+                            resolve({ result: 'error', error: err });
+                        }
+                        else {
+                            pool.query(`UPDATE tbl_users SET ${this.field}updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= $${(this.values).length}`, this.values, (error) => {
+                                if(error) reject(error);
+                                resolve({ result: 'success', message: 'Successfully updated!' });
+                            });
+                        }
+                    })
+                }
+                else {
+                    pool.query(`UPDATE tbl_users SET ${this.field}updated_by= 1, date_updated= CURRENT_TIMESTAMP WHERE id= $${(this.values).length}`, this.values, (error) => {
+                        if(error) reject(error);
+                        resolve({ result: 'success', message: 'Successfully updated!' });
+                    });
+                }
+            })
+        });
+    }
+
+    test_report = () => {
+        return new Promise((resolve, reject) => {
+            pool.query(`SELECT * FROM tbl_test_report WHERE id= ${this.id}`, (error, tr) => {
+                if(error) reject(error);
+                
+                pool.query(`UPDATE tbl_basic_information SET serial_no= '${(this.data).basic_information.serial_no}', project= '${(this.data).basic_information.project}',
+                                    customer_id= ${(this.data).basic_information.customer_id} WHERE id= ${tr.rows[0].basic_information_id}`, error => {
+                    if(error) reject(error);
+
+                    pool.query(`UPDATE tbl_general_specification SET panel_name= '${(this.data).general_specification.panel_name}', voltage= '${(this.data).general_specification.voltage}', 
+                                        enclosure_type= '${(this.data).general_specification.enclosure_type}', wire= '${(this.data).general_specification.wire}', 
+                                        color= '${(this.data).general_specification.color}' WHERE id= ${tr.rows[0].general_specification_id}`, error => {
+                        if(error) reject(error);
+                        
+                        pool.query(`UPDATE tbl_component SET draw= '${JSON.stringify((this.data).component.draw)}', circuit_breaker= '${JSON.stringify((this.data).component.circuit_breaker)}', 
+                                            lbs= '${JSON.stringify((this.data).component.lbs)}', magnetic_switch= '${JSON.stringify((this.data).component.magnetic_switch)}', 
+                                            capacitor= '${JSON.stringify((this.data).component.capacitor)}', auxillary= '${JSON.stringify((this.data).component.auxillary)}', 
+                                            other= '${(this.data).component.other}', jo_number= '${(this.data).component.jo_number}', 
+                                            hnn= '${JSON.stringify((this.data).component.hnn)}', lrn= '${JSON.stringify((this.data).component.lrn)}', 
+                                            quantity= ${(this.data).component.quantity === '' ? 0 : (this.data).component.quantity}, remarks= '${(this.data).component.remarks}' 
+                                            WHERE id= ${tr.rows[0].component_id}`, error => {
+                            if(error) reject(error);
+                            
+                            for(let count = 0; count < ((this.data).items).length; count++) {
+                                let row = (this.data).items[count];
+
+                                if(row.id !== '') {
+                                    pool.query(`UPDATE tbl_component_items SET device= '${row.device}', symbol= '${row.symbol}', description= '${row.description}', 
+                                                        quantity=${row.quantity} WHERE id= ${row.id}`);
+                                }
+                                else {
+                                    pool.query(`INSERT INTO tbl_component_items(component_id, device, symbol, description, quantity)
+                                                        VALUES(${tr.rows[0].component_id}, '${row.device}', '${row.symbol}', '${row.description}', ${row.quantity})`);
+                                }
+                            }
+
+                            pool.query(`UPDATE tbl_construction_inspection SET draw= '${JSON.stringify((this.data).construction_inspection.draw)}', paint= '${JSON.stringify((this.data).construction_inspection.paint)}', 
+                                                busbar= '${JSON.stringify((this.data).construction_inspection.busbar)}', powercable= '${JSON.stringify((this.data).construction_inspection.powercable)}', 
+                                                nameplate= ${(this.data).construction_inspection.nameplate === '' ? 0 : (this.data).construction_inspection.nameplate}, 
+                                                devicenos= ${(this.data).construction_inspection.devicenos === '' ? 0 : (this.data).construction_inspection.devicenos}, 
+                                                remarks= '${(this.data).construction_inspection.remarks}' WHERE id= ${tr.rows[0].construction_inspection_id}`, error => {
+                                if(error) reject(error);
+
+                                pool.query(`UPDATE tbl_mechanical_operation SET circuit_breaker= '${JSON.stringify((this.data).mechanical_operation.circuit_breaker)}', 
+                                                    load_breaker= '${JSON.stringify((this.data).mechanical_operation.load_breaker)}', 
+                                                    magnetic_switch= '${JSON.stringify((this.data).mechanical_operation.magnetic_switch)}', 
+                                                    screw_tightening= '${JSON.stringify((this.data).mechanical_operation.screw_tightening)}', 
+                                                    remarks= '${(this.data).mechanical_operation.remarks}' 
+                                                    WHERE id= ${tr.rows[0].mechanical_operation_id}`, error => {
+                                    if(error) reject(error);
+                                    
+                                    pool.query(`UPDATE tbl_electrical_operation SET irt= '${JSON.stringify((this.data).electrical_operation.irt)}', 
+                                                        ccirt= '${JSON.stringify((this.data).electrical_operation.ccirt)}', ds= '${JSON.stringify((this.data).electrical_operation.ds)}', 
+                                                        ccds= '${JSON.stringify((this.data).electrical_operation.ccds)}', polarity= '${JSON.stringify((this.data).electrical_operation.polarity)}', 
+                                                        simulation= '${JSON.stringify((this.data).electrical_operation.simulation)}', pst= '${JSON.stringify((this.data).electrical_operation.pst)}', 
+                                                        remarks= '${(this.data).electrical_operation.remarks}', 
+                                                        et= ${(this.data).electrical_operation.et === true ? 1 : 0}, 
+                                                        ct= ${(this.data).electrical_operation.ct === true ? 1 : 0} WHERE id= ${tr.rows[0].electrical_operation_id}`, error => {
+                                        if(error) reject(error);
+
+                                        resolve({ result: 'success', message: 'Successfully updated!' });
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    }
 }
 
 module.exports = Update;
