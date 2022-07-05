@@ -113,6 +113,53 @@ const excel = (tbl) => {
     });
 }
 
+const testreport = (id) => {
+    return new Promise((resolve, reject) => {
+        db.query(`SELECT * FROM tbl_test_report WHERE id= ${id}`, (error, tr) => {
+            if(error) reject(error);
+            let data = {};
+            
+            db.query(`SELECT *, tbl_customer.name FROM tbl_basic_information
+                            LEFT JOIN tbl_customer ON tbl_basic_information.customer_id = tbl_customer.id 
+                            WHERE tbl_basic_information.id= ${tr.rows[0].basic_information_id}`, (err, bi) => { 
+                if(err) reject(err);
+                data['basic_information'] = bi.rows[0];
+
+                db.query(`SELECT * FROM tbl_general_specification WHERE id= ${tr.rows[0].general_specification_id}`, (err, gs) => {
+                    if(err) reject(err);
+                    data['general_specification'] = gs.rows[0];
+
+                    db.query(`SELECT * FROM tbl_component WHERE id= ${tr.rows[0].component_id}`, (err, c) => {
+                        if(err) reject(err);
+                        data['component'] = c.rows[0];
+
+                        db.query(`SELECT id, device, symbol, description, quantity FROM tbl_component_items WHERE component_id = ${tr.rows[0].component_id}`, (err, items) => {
+                            if(err) reject(err);
+                            data['items'] = items.rows;
+                            
+                            db.query(`SELECT * FROM tbl_construction_inspection WHERE id= ${tr.rows[0].construction_inspection_id}`, (err, ci) => {
+                                if(err) reject(err);
+                                data['construction_inspection'] = ci.rows[0];
+
+                                db.query(`SELECT * FROM tbl_mechanical_operation WHERE id= ${tr.rows[0].mechanical_operation_id}`, (err, mo) => {
+                                    if(err) reject(err);
+                                    data['mechanical_operation'] = mo.rows[0];
+
+                                    db.query(`SELECT * FROM tbl_electrical_operation WHERE id= ${tr.rows[0].electrical_operation_id}`, (err, eo) => {
+                                        if(err) reject(err);
+                                        data['electrical_operation'] = eo.rows[0];
+                                        resolve(data);
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
+
 module.exports = {
     getAll,
     save,
@@ -121,5 +168,6 @@ module.exports = {
     update,
     optionPer,
     reports,
-    excel
+    excel,
+    testreport
 }
