@@ -69,4 +69,13 @@ router.get('/excel/:tbl', (req, res) => {
     });
 });
 
+// Test Report
+router.get('/test-report/:id', (req, res) => {
+    query.testreport(req.params.id).then(response => {
+        res.status(200).send(response);
+    }).catch(error => {
+        res.status(200).send(error);
+    });
+});
+
 module.exports = router;
