@@ -44,6 +44,10 @@ class GetAll {
     department = () => {
         return `SELECT * FROM tbl_department ORDER BY date_created DESC`;
     }
+
+    position = () => {
+        return `SELECT * FROM tbl_position ORDER BY date_created DESC`;
+    }
 }
 
 module.exports = GetAll;

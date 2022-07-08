@@ -56,6 +56,26 @@ class Save {
         });
     }
 
+    position = () => {
+        return new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM tbl_position WHERE name= '${(this.data).name}'`, (error, result) => {
+                if(error) reject(error);
+                const err = [];
+
+                if(result.rowCount !== 0) {
+                    err.push({ name: 'name', message: 'Position name already exist!' });
+                    resolve({ result: 'error', error: err });
+                }
+                else {
+                    db.query(`INSERT INTO tbl_position(${this.field}created_by, date_created) VALUES(${this.val} 1, CURRENT_TIMESTAMP)`, this.values, (error) => {
+                        if(error) reject(error);
+                        resolve({ result: 'success', message: 'Successfully saved!' });
+                    });
+                }
+            });
+        });
+    }
+
     brand = () => {
         return new Promise((resolve, reject) => {
             db.query(`SELECT * FROM tbl_brand WHERE name= $1 AND category_id= $2`,[ (this.data).name, (this.data).category_id ], (error, result) => {

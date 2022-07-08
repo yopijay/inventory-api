@@ -70,6 +70,36 @@ class Update {
         });
     }
 
+    position = () => {
+        return new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM tbl_position WHERE name= '${(this.data).name}' AND id= ${this.id}`, (error, result) => {
+                if(error) reject(error);
+                const err = [];
+                if(result.rowCount === 0) {
+                    db.query(`SELECT * FROM tbl_position WHERE name= '${(this.data).name}'`, (error, result) => {
+                        if(error) reject(error);
+                        if(result.rowCount !== 0) {
+                            err.push({ name: 'name', message: 'Position name already exist!' });
+                            resolve({ result: 'error', error: err });
+                        }
+                        else {
+                            db.query(`UPDATE tbl_position SET ${this.field}updated_by=1, date_updated= CURRENT_TIMESTAMP WHERE id= $${(this.values).length}`, this.values, (error) => {
+                                if(error) reject(error);
+                                resolve({ result: 'success', message: 'Successfully Updated!' });
+                            });
+                        }
+                    });
+                }
+                else {
+                    db.query(`UPDATE tbl_position SET ${this.field}updated_by=1, date_updated= CURRENT_TIMESTAMP WHERE id= $${(this.values).length}`, this.values, (error) => {
+                        if(error) reject(error);
+                        resolve({ result: 'success', message: 'Successfully Updated!' });
+                    });
+                }
+            });
+        });
+    }
+
     brand = () => {
         return new Promise((resolve, reject) => {
             db.query(`SELECT * FROM tbl_brand WHERE name= '${(this.data).name}' AND category_id= ${(this.data).category_id} AND id= ${this.id}`, (error, result) => {

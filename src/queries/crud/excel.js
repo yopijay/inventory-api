@@ -18,6 +18,15 @@ class Excel {
                     ORDER BY tbl_department.date_created ASC`;
     }
 
+    position = () => {
+        return `SELECT tbl_position.id, tbl_position.series_no, tbl_position.name, tbl_position.description, CASE WHEN tbl_position.status > 0 THEN 'Active' ELSE 'Inactive' END AS status,
+                    CONCAT(cb.lname, ', ', cb.fname, ' ', cb.mname) AS created_by, tbl_position.date_created,
+                    CONCAT(ub.lname, ', ', ub.fname, ' ', ub.mname) AS updated_by, tbl_position.date_updated FROM tbl_position
+                    LEFT JOIN tbl_users AS cb ON tbl_position.created_by = cb.id
+                    LEFT JOIN tbl_users AS ub ON tbl_position.updated_by = ub.id
+                    ORDER BY tbl_position.date_created ASC`;
+    }
+
     brand = () => {
         return `SELECT tbl_brand.id, tbl_brand.series_no, tbl_category.name AS category, tbl_brand.name, tbl_brand.description, CASE WHEN tbl_brand.status > 0 THEN 'Active' ELSE 'Inactive' END AS status,
                     CONCAT(cb.lname, ', ', cb.fname, ' ', cb.mname) AS created_by, tbl_brand.date_created,
