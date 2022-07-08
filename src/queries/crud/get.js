@@ -7,6 +7,14 @@ class Get {
         return `SELECT * FROM tbl_category WHERE id= ${this.id}`;
     }
 
+    department = () => {
+        return `SELECT * FROM tbl_department WHERE id= ${this.id}`;
+    }
+
+    position = () => {
+        return `SELECT * FROM tbl_position WHERE id= ${this.id}`;
+    }
+
     brand = () => {
         return `SELECT * FROM tbl_brand WHERE id= ${this.id}`;
     }

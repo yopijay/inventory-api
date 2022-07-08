@@ -6,6 +6,12 @@ class Reports {
                     GROUP BY tbl_category.id, tbl_category.series_no, tbl_category.name ORDER BY tbl_category.date_created ASC`;
     }
 
+//     department = () => {
+//        return `SELECT tbl_department.id, tbl_department.series_no, tbl_department.name, COUNT(tbl_brand.*) AS total_no_of_brands FROM tbl_department
+//                    LEFT JOIN tbl_brand ON tbl_department.id = tbl_brand.department_id WHERE tbl_brand.department_id = tbl_department.id
+//                    GROUP BY tbl_department.id, tbl_department.series_no, tbl_department.name ORDER BY tbl_department.date_created ASC`;
+//    }
+
     brand = () => {
         return `SELECT tbl_brand.id, tbl_brand.series_no, tbl_category.name AS category_name, tbl_brand.name, COUNT(tbl_assets.*) AS total_no_of_assets FROM tbl_brand
                     LEFT JOIN tbl_category ON tbl_brand.category_id = tbl_category.id
