@@ -14,6 +14,10 @@ class Options {
     customer = () => {
         return `SELECT ${this.columns} FROM tbl_customer WHERE status= 1 ORDER BY id ASC`;
     }
+
+    department = () => {
+        return `SELECT ${this.columns} FROM tbl_department WHERE status= 1 ORDER BY id ASC`;
+    }
 }
 
 module.exports = Options;

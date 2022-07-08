@@ -9,6 +9,15 @@ class Excel {
                     ORDER BY tbl_category.date_created ASC`;
     }
 
+    department = () => {
+        return `SELECT tbl_department.id, tbl_department.series_no, tbl_department.name, tbl_department.description, CASE WHEN tbl_department.status > 0 THEN 'Active' ELSE 'Inactive' END AS status,
+                    CONCAT(cb.lname, ', ', cb.fname, ' ', cb.mname) AS created_by, tbl_department.date_created,
+                    CONCAT(ub.lname, ', ', ub.fname, ' ', ub.mname) AS updated_by, tbl_department.date_updated FROM tbl_department
+                    LEFT JOIN tbl_users AS cb ON tbl_department.created_by = cb.id
+                    LEFT JOIN tbl_users AS ub ON tbl_department.updated_by = ub.id
+                    ORDER BY tbl_department.date_created ASC`;
+    }
+
     brand = () => {
         return `SELECT tbl_brand.id, tbl_brand.series_no, tbl_category.name AS category, tbl_brand.name, tbl_brand.description, CASE WHEN tbl_brand.status > 0 THEN 'Active' ELSE 'Inactive' END AS status,
                     CONCAT(cb.lname, ', ', cb.fname, ' ', cb.mname) AS created_by, tbl_brand.date_created,

@@ -40,6 +40,10 @@ class GetAll {
                     LEFT JOIN tbl_users as users ON tbl_test_report.created_by = users.id
                     ORDER BY tbl_test_report.date_created ASC`;
     }
+
+    department = () => {
+        return `SELECT * FROM tbl_department ORDER BY date_created DESC`;
+    }
 }
 
 module.exports = GetAll;
