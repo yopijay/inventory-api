@@ -17,7 +17,8 @@ class GetAll {
     }
     
     users = () => {
-        return `SELECT * FROM tbl_users ORDER BY date_created DESC`;
+        return `SELECT tbl_users.id, tbl_users.series_no, tbl_users.fname, tbl_users.mname, tbl_users.lname, tbl_position.name AS position, tbl_users.status, tbl_users.date_created
+                    FROM tbl_users LEFT JOIN tbl_position ON tbl_users.position_id = tbl_position.id ORDER BY date_created DESC`;
     }
     
     assigned_asset = () => {
